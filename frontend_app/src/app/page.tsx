@@ -77,10 +77,10 @@ export default function Home() {
 
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-2 pb-0 gap-4 sm:p-20">
-      <div className="w-full h-15 bg-blue-500 rounded items-center justify-items-center pt-4">
+      <div className="w-full h-15  rounded items-center justify-items-center pt-4">
         <h2 className="text-2xl">Chatgpt</h2>
       </div>
-      <div className="w-full h-auto border px-6 py-4 overflow-y-auto max-h-[70vh]">
+      <div className="w-full h-auto  px-6 py-4 overflow-y-auto mt-0">
         <ul>
           {tempData.map((dat, index) => (
             <li key={index} className="mb-4">
@@ -102,7 +102,16 @@ export default function Home() {
         {loading ? (
           <LoadingSpinner></LoadingSpinner>
         ) : (
-          <input className="w-full h-10 bg-gray-500 rounded-2xl" placeholder="Ask Anything"></input>
+          <div className="flex items-center w-full border rounded-2xl overflow-hidden">
+            <input
+              type="text"
+              placeholder="Ask Anything..."
+              className="flex-grow px-4 p-2 outline-none"
+            />
+            <button className="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 hover:cursor-pointer">
+              Go
+            </button>
+          </div>
         )}
       </footer>
     </div>
