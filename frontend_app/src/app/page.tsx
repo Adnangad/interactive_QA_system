@@ -1,102 +1,109 @@
+'use client'
 import Image from "next/image";
+import { useState, useEffect } from "react";
+import LoadingSpinner from "./loading";
+
+const useTypewriter = (text: string, speed = 20) => {
+  const [displayText, setDisplayText] = useState('');
+
+  useEffect(() => {
+    let i = 0;
+    const typeCharacter = () => {
+      if (i < text.length) {
+        setDisplayText(prevText => prevText + text.charAt(i));
+        i++;
+        setTimeout(typeCharacter, speed);
+      }
+    };
+
+    typeCharacter();
+  }, [text, speed]);
+
+  return displayText;
+};
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [query, SetQuery] = useState("");
+  const [error, SetError] = useState("");
+  const [loading, SetLoading] = useState(false);
+  const [response, SetResponse] = useState([]);
+  const tempData = [{ user: "Hello, how are you?", chat_bot: "I am doing well bg-blue-500 rounded items-center justify-items-center pt-4" }]
+  //const typedText = useTypewriter("Welcome, Whats on your mind?", 50);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+  useEffect(() => {
+    async function get_data() {
+      try {
+        const url = "http://localhost:2189/prompt";
+        const resp = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await resp.json();
+        SetResponse(data);
+      } catch (error: any) {
+        console.log(error);
+        SetError("An error occured while fetching chat history");
+      }
+    }
+    get_data()
+  }, [])
+
+  async function promptChat(event: Event) {
+    SetLoading(true)
+    event.preventDefault()
+    const url = "http://localhost:2189/prompt";
+    if (query.length < 1) {
+      SetError("Kindly input a valid prompt");
+    }
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(query),
+      });
+      if (resp.status == 200) {
+        const data = await resp.json()
+        SetResponse(data);
+      }
+      else {
+        console.log(resp.status)
+      }
+    } catch (error: any) {
+      console.log(error);
+      SetError("Unable to Respond at this time, Kindly try again later");
+    }
+
+  }
+
+  return (
+    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-2 pb-0 gap-4 sm:p-20">
+      <div className="w-full h-15 bg-blue-500 rounded items-center justify-items-center pt-4">
+        <h2 className="text-2xl">Chatgpt</h2>
+      </div>
+      <div className="w-full h-auto border px-6 py-4 overflow-y-auto max-h-[70vh]">
+        <ul>
+          {tempData.map((dat, index) => (
+            <li key={index} className="mb-4">
+              {dat.user && (
+                <p className="text-lg bg-blue-500 text-white p-2 rounded-xl float-right clear-both max-w-xs">
+                  {dat.user}
+                </p>
+              )}
+              {dat.chat_bot && (
+                <h3 className="text-lg bg-gray-400 p-2 rounded-xl float-left clear-both w-full pt-3 mt-5">
+                  {dat.chat_bot}
+                </h3>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <footer className="w-full h-auto pr-40 pl-40">
+        {loading ? (
+          <LoadingSpinner></LoadingSpinner>
+        ) : (
+          <input className="w-full h-10 bg-gray-500 rounded-2xl" placeholder="Ask Anything"></input>
+        )}
       </footer>
     </div>
   );
