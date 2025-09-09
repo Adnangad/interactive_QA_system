@@ -17,14 +17,14 @@ export default function Home() {
   useEffect(() => {
     async function get_data() {
       try {
-        const url = "http://127.0.0.1:8000/history";
+        const url = "http://127.0.0.1:8000/backend_api/history";
         const resp = await fetch(url, {
           method: "GET",
           headers: { "Content-Type": "application/json" }
         });
         const data = await resp.json();
         console.log("DATA IS:: ", data);
-        SetResponse(data);
+        SetResponse(data.data);
       } catch (error: any) {
         console.log(error);
         SetError("An error occurred while fetching chat history");
@@ -46,19 +46,18 @@ export default function Home() {
     }
 
     try {
-      const resp = await fetch("http://127.0.0.1:8000/prompt", {
+      const resp = await fetch("http://127.0.0.1:8000/backend_api/prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
       });
 
       if (resp.ok) {
-        const data: ChatMessage = await resp.json();
-        console.log("RESPONSE IS::: ", data);
-
-        // append new messages to chat
-        SetResponse(prev => [...prev, data]);
-        SetQuery(""); // clear input
+        const data = await resp.json();
+        console.log("RESPONSE IS:: ", data)
+        console.log("RESPONSE IS::: ", data.data);
+        SetResponse(data.data);
+        SetQuery("");
       } else {
         console.log("Error status:", resp.status);
         SetError("Something went wrong while fetching response");
@@ -89,7 +88,7 @@ export default function Home() {
                   </p>
                 )}
                 {dat.chat_bot && (
-                  <h3 className="text-lg bg-gray-400 p-2 rounded-xl float-left clear-both w-full pt-3 mt-5">
+                  <h3 className="text-lg bg-gray-400 p-2 rounded-xl float-left clear-both w-full pt-3 mt-5 mb-5">
                     {dat.chat_bot}
                   </h3>
                 )}
